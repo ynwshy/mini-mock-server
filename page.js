@@ -1,7 +1,7 @@
 // 可以使用测试号: https://developers.weixin.qq.com/sandbox
 module.exports = {
     aaa: 'aaaaaaaaaaaaaaaaaaaa',
-    pageUtil: function(total = 56, pageNo = 1, pageSize = 10) {
+    pageUtil: function(pageNo = 1,pageSize = 10 , total = 56 ) {
         console.log("page-----",total, pageNo, pageSize );
         
         if (pageNo <= 0) {

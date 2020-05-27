@@ -136,24 +136,26 @@ app
     throw new Error('用户未登录')
 })
 
+/**
+ * 商家列表
+ */
 .post('/shops/list', (req, res) => {
         console.log('post -- shops/list');
 
-        let now = new Date().getTime()
         var { keyword, pageNo, pageSize } = req.body
 
+        var pageObj = page.pageUtil(pageNo, pageSize);
+        var { curPageNums, itemStartid, total_page_nums } = {...pageObj };
+        // console.log(pageObj);
+
         let lists = [];
-
-        var pageObj = page.pageUtil();
-        var { curPageNums, itemStartid ,total_page_nums} = {...pageObj };
-
         while (curPageNums > 0) {
             let randomStr = Number(Math.random().toString().substr(3, 5) + Date.now()).toString(36);
             lists.push(Mock.mock({
                 id: itemStartid,
-                name: itemStartid + '' +Mock.mock('@cname()')+ (keyword || '') + 'xxx店铺' + randomStr,
-                time:Random.time(),
-                aaguid:"@guid"
+                name: itemStartid + '' + Mock.mock('@cname()') + (keyword || '') + 'xxx店铺' + randomStr,
+                time: Random.time(),
+                aaguid: "@guid"
             }));
             itemStartid++
             curPageNums--
@@ -164,9 +166,9 @@ app
             data: {
                 list: lists,
                 pageNo,
-                pageSize:pageObj.pageSize,
-                curPageNums:pageObj.curPageNums,
-                total_page_nums:total_page_nums,
+                pageSize: pageObj.pageSize,
+                curPageNums: pageObj.curPageNums,
+                total_page_nums: total_page_nums,
                 total: pageObj.total
             }
         })
