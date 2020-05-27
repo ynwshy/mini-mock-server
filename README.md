@@ -1,4 +1,13 @@
-微信小程序登录 demo
+微信小程序 mock-server
+
+```
+npm i
+
+npm start
+
+
+```
+
 ===
 
 小程序登录 demo 分为客户端和服务端两个部分

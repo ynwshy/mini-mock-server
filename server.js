@@ -7,6 +7,8 @@ var config = require('./config')
 var page = require('./page')
 var WXBizDataCrypt = require('./WXBizDataCrypt')
 var app = express()
+var Mock = require('mockjs')
+let Random = Mock.Random;
 
 const port = 9999
 
@@ -142,28 +144,30 @@ app
 
         let lists = [];
 
-        var total = 56;
-        var pageObj = page.pageUtil(total, pageSize, pageNo)
-        let { pageSize_return, lastPageNo,itemStartid } = {...pageObj };
+        var pageObj = page.pageUtil();
+        var { curPageNums, itemStartid ,total_page_nums} = {...pageObj };
 
-        while (pageSize_return > 0) {
+        while (curPageNums > 0) {
             let randomStr = Number(Math.random().toString().substr(3, 5) + Date.now()).toString(36);
-            lists.push({
+            lists.push(Mock.mock({
                 id: itemStartid,
-                name: itemStartid + '' + (keyword || '') + 'xxx店铺' + randomStr
-            })
+                name: itemStartid + '' +Mock.mock('@cname()')+ (keyword || '') + 'xxx店铺' + randomStr,
+                time:Random.time(),
+                aaguid:"@guid"
+            }));
             itemStartid++
-            pageSize_return--
+            curPageNums--
         }
 
         return res.send({
             code: 1,
             data: {
                 list: lists,
-                pageNo: pageNo,
-                pageSize: pageSize,
-                lastPageNo: lastPageNo,
-                total: total
+                pageNo,
+                pageSize:pageObj.pageSize,
+                curPageNums:pageObj.curPageNums,
+                total_page_nums:total_page_nums,
+                total: pageObj.total
             }
         })
     })
