@@ -1,233 +1,297 @@
-var express = require('express')
-var bodyParser = require('body-parser')
-var path = require('path')
-var session = require('express-session')
-var axios = require('axios')
-var config = require('./config')
-var page = require('./page')
-var WXBizDataCrypt = require('./WXBizDataCrypt')
-var app = express()
-var Mock = require('mockjs')
+var express = require("express");
+var bodyParser = require("body-parser");
+var path = require("path");
+var session = require("express-session");
+var axios = require("axios");
+var config = require("./config");
+var page = require("./page");
+var WXBizDataCrypt = require("./WXBizDataCrypt");
+var app = express();
+var Mock = require("mockjs");
 let Random = Mock.Random;
 
-const port = 9999
+const port = 9999;
 
 function returnTimeout(cb, times = Random.natural(1, 1000)) {
-    console.log(...arguments)
-    setTimeout(() => {
-        return cb()
-    }, times);
+  console.log(...arguments);
+  setTimeout(() => {
+    return cb();
+  }, times);
 }
 
 function log() {
-    console.log(...arguments)
+  console.log(...arguments);
 }
 
 function err() {
-    console.error(...arguments)
+  console.error(...arguments);
 }
 
 // 存储所有用户信息
 const users = {
-    // openId 作为索引
-    openId: {
-        // 数据结构如下
-        openId: '', // 理论上不应该返回给前端
-        sessionKey: '',
-        nickName: '',
-        avatarUrl: '',
-        unionId: '',
-        phoneNumber: ''
-    }
-}
-
+  // openId 作为索引
+  // openId: {
+  //   id: "",
+  //   // 数据结构如下
+  //   openId: "", // 理论上不应该返回给前端
+  //   sessionKey: "",
+  //   nickName: "",
+  //   avatarUrl: "",
+  //   unionId: "",
+  //   phoneNumber: "",
+  // },
+};
 
 app
-    .use(bodyParser.json())
-    .use(session({
-        secret: 'alittlegirl',
-        resave: false,
-        saveUninitialized: true
-    }))
+  .use(bodyParser.json())
+  .use(
+    session({
+      secret: "alittlegirl",
+      resave: false,
+      saveUninitialized: true,
+    })
+  )
 
-.use((req, res, next) => {
-    req.user = users[req.session.openId]
-    console.log(`req.url: ${req.url}`)
+  .use((req, res, next) => {
+    log(`\n\n<------------------------------------`);
+    log(`<------------------------------------`);
+    log(`<------------------------------------`);
+    // log(req)
+    log(`url       : ${req.url}`);
+    log(`method    : ${req.method}`);
+    log(`query     : `, req.query);
+    log(`params    : `, req.params);
+    log(`body      : `, req.body);
+    log(`session   : `, req.session);
+    log(`headers   : `, req.headers);
+    log(`userid    : `, req.headers.userid);
+    log(`token     : `, req.headers.token);
+    log(`openid    : `, req.headers.openid);
+    log(`users     : `, users);
+    req.user = users[req.headers.userid];
+    log(`curUser   : `, req.user);
     if (req.user) {
-        console.log(`wxapp openId`, req.user.openId)
+      log(`wxapp openId`, req.user.openId);
     } else {
-        console.log(`session`, req.session.id)
+      log(`session`, req.session.id);
     }
-    next()
-})
+    next();
+  })
 
-.get('/test/get', (req, res) => {
-    returnTimeout(() => res.send({
+  .get("/test/get", (req, res) => {
+    // log(req)
+    returnTimeout(() =>
+      res.send({
         code: 0,
-        data: { hello: "8889999" }
-    }))
-})
+        data: {
+          hello: "888999439 id: " + req.query.id || "",
+        },
+        "req.Query": req.query,
+      })
+    );
+  })
 
-/**
- * 小程序登录 code => openid
- */
-.post('/oauth/login', (req, res) => {
-    var params = req.body
-    console.log(params)
-    var { code, type } = params
-    var openId = "openId";
-    var session_key = "session_key";
+  /**
+   * 小程序登录 code => openid
+   */
+  .post("/oauth/login/code", (req, res) => {
+    var params = req.body;
+    log(params);
+    var { code, type } = params;
+    var res_openId = "openId";
+    var res_session_key = "session_key";
 
-    if (type === 'wxapp') {
-        axios.get('https://api.weixin.qq.com/sns/jscode2session', {
-            params: {
-                appid: config.appId,
-                secret: config.appSecret,
-                js_code: code,
-                grant_type: 'authorization_code'
-            }
-        }).then(({ data }) => {
-            console.log('jscode2session: ', data)
-            openId = data.openid
-            var user = users[openId]
-            if (!user) {
-                user = {
-                    openId,
-                    sessionKey: data.session_key
-                }
-                users[openId] = user
-                console.log('新用户', user)
-            } else {
-                console.log('老用户', user)
-            }
-            req.session.openId = user.openId
-        }).then(() => {
-            res.send({
-                code: 0,
-                data: {
-                    openId: openId,
-                    session_key: session_key
-                }
-            })
+    if (type === "wxapp") {
+      let pa = {
+        appid: config.appId,
+        secret: config.appSecret,
+        js_code: code,
+        grant_type: "authorization_code",
+      };
+      log(pa);
+      axios
+        .get("https://api.weixin.qq.com/sns/jscode2session", { params: pa })
+        .then(({ data }) => {
+          log("jscode2session: ", data);
+          if (data.openid) {
+            res_openId = data.openid;
+            res_session_key = data.session_key;
+            log("users ", users);
+            var user = users[res_openId];
+            log("user ", user);
+            // if (!user) {
+              user = {
+                id: Random.guid(),
+                nickName: Random.cname(),
+                openId: res_openId,
+                sessionKey: res_session_key,
+              };
+              users[user.id] = user;
+              log("新用户", user);
+            // } else {
+            //   log("老用户", user);
+            // }
+            req.session.openId = user.openId;
+            // log(req.session)
+            return res.send({
+              code: 0,
+              data: {
+                userId: user.id,
+                openId: res_openId,
+                session_key: res_session_key,
+              },
+              msg: "wxlogin 获取openid 成功",
+            });
+          } else {
+            return res.send({
+              code: 201,
+              data: {
+                openId: null,
+                session_key: null,
+              },
+              msg: "请求微信服务异常",
+              errmsg: data,
+            });
+          }
         })
+        .catch((err) => {
+          log("catch -----------------------------------------\n", err);
+          return res.send({
+            code: 203,
+            data: {
+              openId: null,
+              session_key: null,
+            },
+            msg: "catch：/jscode2session 请求微信接口服务失败",
+            // errmsg:JSON.stringify(err)
+          });
+        });
     } else {
-        throw new Error('未知的授权类型')
+      throw new Error("未知的授权类型");
     }
+  })
 
-})
-
-.get('/user/info', (req, res) => {
+  .get("/user/info", (req, res) => {
     if (req.user) {
-        return res.send({
-            code: 0,
-            data: req.user
-        })
+      return res.send({
+        code: 0,
+        data: req.user,
+      });
     }
-    throw new Error('用户未登录')
-})
+    throw new Error("用户未登录");
+  })
 
-.post('/user/bindinfo', (req, res) => {
-    var user = req.user
+  .post("/user/bindinfo", (req, res) => {
+    var user = req.user;
     if (user) {
-        var { encryptedData, iv } = req.body
-        var pc = new WXBizDataCrypt(config.appId, user.sessionKey)
-        try {
-            var data = pc.decryptData(encryptedData, iv)
-        } catch (err) {
-            throw new Error('session 失效建议重新登录')
-        }
-        Object.assign(user, data)
-        return res.send({
-            code: 0
-        })
+      var { encryptedData, iv } = req.body;
+      var pc = new WXBizDataCrypt(config.appId, user.sessionKey);
+      try {
+        var data = pc.decryptData(encryptedData, iv);
+      } catch (err) {
+        throw new Error("session 失效建议重新登录");
+      }
+      Object.assign(user, data);
+      return res.send({
+        code: 0,
+      });
     }
-    throw new Error('用户未登录')
-})
+    throw new Error("用户未登录");
+  })
 
-.post('/user/bindphone', (req, res) => {
-    var user = req.user
+  .post("/user/bindphone", (req, res) => {
+    var user = req.user;
     if (user) {
-        var { encryptedData, iv } = req.body
-        var pc = new WXBizDataCrypt(config.appId, user.sessionKey)
-        try {
-            var data = pc.decryptData(encryptedData, iv)
-        } catch (err) {
-            throw new Error('session 失效建议重新登录')
-        }
-        Object.assign(user, data)
-        return res.send({
-            code: 0
-        })
+      var { encryptedData, iv } = req.body;
+      var pc = new WXBizDataCrypt(config.appId, user.sessionKey);
+      try {
+        var data = pc.decryptData(encryptedData, iv);
+      } catch (err) {
+        throw new Error("session 失效建议重新登录");
+      }
+      Object.assign(user, data);
+      return res.send({
+        code: 0,
+      });
     }
-    throw new Error('用户未登录')
-})
+    throw new Error("用户未登录");
+  })
 
-/**
- * 商家列表
- */
-.post('/shops/list', (req, res) => {
-    log('\n\n---------------------------------------');
-    log('---------------------------------------');
-    log('post -- shops/list');
-    log('     -- body ', req.body);
-    var { keyword, pageNo, pageSize } = req.body
+  /**
+   * 商家列表
+   */
+  .post("/shops/list", (req, res) => {
+    // log('\n\n---------------------------------------');
+    // log('---------------------------------------');
+    log("post -- shops/list");
+    log("     -- body ", req.body);
+    var { keyword, pageNo, pageSize } = req.body;
 
     var pageObj = page.pageUtil(pageNo, pageSize);
-    var { curPageNums, itemStartid, total_page_nums } = {...pageObj };
-    // console.log(pageObj);
+    var { curPageNums, itemStartid, total_page_nums } = { ...pageObj };
+    // log(pageObj);
 
     let lists = [];
     while (curPageNums > 0) {
-        let randomStr = Number(Math.random().toString().substr(3, 5) + Date.now()).toString(36);
-        lists.push(Mock.mock({
-            id: itemStartid,
-            name: itemStartid + '' + Mock.mock('@cname()') + (keyword || '') + 'xxx店铺' + randomStr,
-            time: Random.time(),
-            aaguid: "@guid"
-        }));
-        itemStartid++
-        curPageNums--
+      let randomStr = Number(
+        Math.random().toString().substr(3, 5) + Date.now()
+      ).toString(36);
+      lists.push(
+        Mock.mock({
+          id: itemStartid,
+          name:
+            itemStartid +
+            "" +
+            Mock.mock("@cname()") +
+            (keyword || "") +
+            "xxx店铺" +
+            randomStr,
+          time: Random.time(),
+          aaguid: "@guid",
+        })
+      );
+      itemStartid++;
+      curPageNums--;
     }
 
     let resData = {
-        code: 1,
-        data: {
-            list: lists,
-            pageNo,
-            pageSize: pageObj.pageSize,
-            curPageNums: pageObj.curPageNums,
-            total_page_nums: total_page_nums,
-            total: pageObj.total
-        }
+      code: 1,
+      data: {
+        list: lists,
+        pageNo,
+        pageSize: pageObj.pageSize,
+        curPageNums: pageObj.curPageNums,
+        total_page_nums: total_page_nums,
+        total: pageObj.total,
+      },
     };
 
-    log('             || ');
-    log('             || \n\n');
-    log('---- resData---- \n');
+    log("             || ");
+    log("             || \n\n");
+    log("---- resData---- \n");
     log(resData);
-    log('---- resData.data.list---- \n');
+    log("---- resData.data.list---- \n");
     log(resData.data.list);
-    log('---------------------------------------');
-    log('---------------------------------------', ' \n \n');
+    log("---------------------------------------");
+    log("---------------------------------------", " \n \n");
 
     // setreturnTimeout(() => {
     //     return res.send(resData)
     // }, 1000)
-    returnTimeout(() => res.send(resData))
+    returnTimeout(() => res.send(resData));
+  })
 
-})
-
-/**
- * 
- */
-.use(function(err, req, res, next) {
-    console.log('err', err.message)
+  /**
+   *
+   */
+  .use(function (err, req, res, next) {
+    log("err", err.message);
     res.send({
-        code: 500,
-        message: '服务器异常：' + err.message
-    })
-})
+      code: 500,
+      message: "服务器异常：" + err.message,
+    });
+  })
 
-.listen(port, err => {
-    console.log(`listen on http://localhost:${port}`)
-})
+  .listen(port, (err) => {
+    log(`listen on http://localhost:${port}`);
+  });
