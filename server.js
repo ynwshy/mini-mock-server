@@ -12,6 +12,21 @@ let Random = Mock.Random;
 
 const port = 9999
 
+function returnTimeout(cb, times = Random.natural(1, 1000)) {
+    console.log(...arguments)
+    setTimeout(() => {
+        return cb()
+    }, times);
+}
+
+function log() {
+    console.log(...arguments)
+}
+
+function err() {
+    console.error(...arguments)
+}
+
 // 存储所有用户信息
 const users = {
     // openId 作为索引
@@ -25,8 +40,8 @@ const users = {
         phoneNumber: ''
     }
 }
-var openId = "openId";
-var session_key = "session_key";
+
+
 app
     .use(bodyParser.json())
     .use(session({
@@ -46,6 +61,13 @@ app
     next()
 })
 
+.get('/test/get', (req, res) => {
+    returnTimeout(() => res.send({
+        code: 0,
+        data: { hello: "8889999" }
+    }))
+})
+
 /**
  * 小程序登录 code => openid
  */
@@ -53,6 +75,9 @@ app
     var params = req.body
     console.log(params)
     var { code, type } = params
+    var openId = "openId";
+    var session_key = "session_key";
+
     if (type === 'wxapp') {
         axios.get('https://api.weixin.qq.com/sns/jscode2session', {
             params: {
@@ -88,6 +113,7 @@ app
     } else {
         throw new Error('未知的授权类型')
     }
+
 })
 
 .get('/user/info', (req, res) => {
@@ -140,49 +166,67 @@ app
  * 商家列表
  */
 .post('/shops/list', (req, res) => {
-        console.log('post -- shops/list');
+    log('\n\n---------------------------------------');
+    log('---------------------------------------');
+    log('post -- shops/list');
+    log('     -- body ', req.body);
+    var { keyword, pageNo, pageSize } = req.body
 
-        var { keyword, pageNo, pageSize } = req.body
+    var pageObj = page.pageUtil(pageNo, pageSize);
+    var { curPageNums, itemStartid, total_page_nums } = {...pageObj };
+    // console.log(pageObj);
 
-        var pageObj = page.pageUtil(pageNo, pageSize);
-        var { curPageNums, itemStartid, total_page_nums } = {...pageObj };
-        // console.log(pageObj);
+    let lists = [];
+    while (curPageNums > 0) {
+        let randomStr = Number(Math.random().toString().substr(3, 5) + Date.now()).toString(36);
+        lists.push(Mock.mock({
+            id: itemStartid,
+            name: itemStartid + '' + Mock.mock('@cname()') + (keyword || '') + 'xxx店铺' + randomStr,
+            time: Random.time(),
+            aaguid: "@guid"
+        }));
+        itemStartid++
+        curPageNums--
+    }
 
-        let lists = [];
-        while (curPageNums > 0) {
-            let randomStr = Number(Math.random().toString().substr(3, 5) + Date.now()).toString(36);
-            lists.push(Mock.mock({
-                id: itemStartid,
-                name: itemStartid + '' + Mock.mock('@cname()') + (keyword || '') + 'xxx店铺' + randomStr,
-                time: Random.time(),
-                aaguid: "@guid"
-            }));
-            itemStartid++
-            curPageNums--
+    let resData = {
+        code: 1,
+        data: {
+            list: lists,
+            pageNo,
+            pageSize: pageObj.pageSize,
+            curPageNums: pageObj.curPageNums,
+            total_page_nums: total_page_nums,
+            total: pageObj.total
         }
+    };
 
-        return res.send({
-            code: 1,
-            data: {
-                list: lists,
-                pageNo,
-                pageSize: pageObj.pageSize,
-                curPageNums: pageObj.curPageNums,
-                total_page_nums: total_page_nums,
-                total: pageObj.total
-            }
-        })
+    log('             || ');
+    log('             || \n\n');
+    log('---- resData---- \n');
+    log(resData);
+    log('---- resData.data.list---- \n');
+    log(resData.data.list);
+    log('---------------------------------------');
+    log('---------------------------------------', ' \n \n');
+
+    // setreturnTimeout(() => {
+    //     return res.send(resData)
+    // }, 1000)
+    returnTimeout(() => res.send(resData))
+
+})
+
+/**
+ * 
+ */
+.use(function(err, req, res, next) {
+    console.log('err', err.message)
+    res.send({
+        code: 500,
+        message: '服务器异常：' + err.message
     })
-    /**
-     * 
-     */
-    .use(function(err, req, res, next) {
-        console.log('err', err.message)
-        res.send({
-            code: 500,
-            message: err.message
-        })
-    })
+})
 
 .listen(port, err => {
     console.log(`listen on http://localhost:${port}`)

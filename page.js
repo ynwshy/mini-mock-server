@@ -2,7 +2,7 @@
 module.exports = {
     aaa: 'aaaaaaaaaaaaaaaaaaaa',
     pageUtil: function(pageNo = 1,pageSize = 10 , total = 56 ) {
-        console.log("page-----",total, pageNo, pageSize );
+        // console.log("page-----",total, pageNo, pageSize );
         
         if (pageNo <= 0) {
             pageNo = 1

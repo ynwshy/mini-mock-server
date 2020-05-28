@@ -5,6 +5,10 @@ npm i
 
 npm start
 
+npm install -g nodemon
+
+# 实时重启服务
+nodemon server.js
 
 ```
 

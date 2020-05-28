@@ -1,19 +1,24 @@
 {
-  "name": "mini-mock-server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^0.18.0",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
-    "express-session": "^1.15.6",
-    "mockjs": "^1.1.0"
-  }
+    "name": "mini-mock-server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon server.js",
+        "start-server": "node server.js",
+        "pm2": "pm2 start server.js",
+        "stop": "pm2 stop server.js",
+        "restart": "pm2 stop server.js",
+        "nodemon": "nodemon server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^0.18.0",
+        "body-parser": "^1.18.3",
+        "express": "^4.16.3",
+        "express-session": "^1.15.6",
+        "mockjs": "^1.1.0"
+    }
 }
