@@ -10,6 +10,9 @@ var app = express();
 var Mock = require("mockjs");
 let Random = Mock.Random;
 
+
+const util = require('./util.js')
+
 const port = 9999;
 
 function returnTimeout(cb, times = Random.natural(1, 1000)) {
@@ -28,19 +31,7 @@ function err() {
 }
 
 // 存储所有用户信息
-const users = {
-  // openId 作为索引
-  // openId: {
-  //   id: "",
-  //   // 数据结构如下
-  //   openId: "", // 理论上不应该返回给前端
-  //   sessionKey: "",
-  //   nickName: "",
-  //   avatarUrl: "",
-  //   unionId: "",
-  //   phoneNumber: "",
-  // },
-};
+const users = [];
 
 app
   .use(bodyParser.json())
@@ -63,17 +54,22 @@ app
     log(`params    : `, req.params);
     log(`body      : `, req.body);
     log(`session   : `, req.session);
-    log(`headers   : `, req.headers);
+    // log(`headers   : `, req.headers);
     log(`userid    : `, req.headers.userid);
     log(`token     : `, req.headers.token);
     log(`openid    : `, req.headers.openid);
     log(`users     : `, users);
-    req.user = users[req.headers.userid];
+    req.user = null;
+    users.forEach((uu) => {
+      if (uu.id === req.headers.userid) {
+        req.user = uu;
+      }
+    });
     log(`curUser   : `, req.user);
     if (req.user) {
-      log(`wxapp openId`, req.user.openId);
+      log(`存在的用户 wxapp openId`, req.user.openId);
     } else {
-      log(`session`, req.session.id);
+      log(`不存在的用户 session`, req.session.id);
     }
     next();
   })
@@ -117,28 +113,39 @@ app
             res_openId = data.openid;
             res_session_key = data.session_key;
             log("users ", users);
-            var user = users[res_openId];
+            let isNewUser = false;
+            var user = null;
+            users.forEach((uu) => {
+              if (uu.openId === res_openId) {
+                user = uu;
+              }
+            });
+
             log("user ", user);
-            // if (!user) {
+            if (!user) {
+              isNewUser = true;
               user = {
                 id: Random.guid(),
                 nickName: Random.cname(),
+                avatarUrl: "https://www.baidu.com/img/flexible/logo/pc/result.png",
                 openId: res_openId,
                 sessionKey: res_session_key,
+                creatTime: util.formatTime(new Date()),
               };
-              users[user.id] = user;
+              users.push(user);
               log("新用户", user);
-            // } else {
-            //   log("老用户", user);
-            // }
+            } else {
+              log("老用户", user);
+            }
             req.session.openId = user.openId;
             // log(req.session)
             return res.send({
               code: 0,
               data: {
                 userId: user.id,
-                openId: res_openId,
-                session_key: res_session_key,
+                // openId: res_openId,
+                // session_key: res_session_key,
+                isNewUser: isNewUser,
               },
               msg: "wxlogin 获取openid 成功",
             });
@@ -175,7 +182,9 @@ app
     if (req.user) {
       return res.send({
         code: 0,
-        data: req.user,
+        data:{
+          user: req.user
+        }
       });
     }
     throw new Error("用户未登录");
