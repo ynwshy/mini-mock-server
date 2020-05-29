@@ -229,10 +229,7 @@ app
   /**
    * 商家列表
    */
-  .post("/shops/list", (req, res) => {
-    // log('\n\n---------------------------------------');
-    // log('---------------------------------------');
-    log("post -- shops/list");
+  .post("/page/list", (req, res) => {
     log("     -- body ", req.body);
     var { keyword, pageNo, pageSize } = req.body;
 
@@ -284,10 +281,8 @@ app
     log("---------------------------------------");
     log("---------------------------------------", " \n \n");
 
-    // setreturnTimeout(() => {
-    //     return res.send(resData)
-    // }, 1000)
     returnTimeout(() => res.send(resData));
+    
   })
 
   /**
