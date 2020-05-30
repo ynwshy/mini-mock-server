@@ -18,7 +18,7 @@ module.exports = {
          */
         var curPageNums = 0;
         // 最后一页 总页数 
-        var total_page_nums = Math.ceil(total / pageSize) || 1;
+        var totalPages = Math.ceil(total / pageSize) || 1;
         // 第4页 31~ 40 还有16页  56 - 4*10 = 16  -->10
         // 第5页 41~ 50 还有6 页  56 - 5*10 =  6  -->10
         // 第6页 51~ 60 还有-4页  56 - 6*10 = -4  --> 6
@@ -34,14 +34,14 @@ module.exports = {
             // 页码超出 总页数
             curPageNums = pageSize + afterItemNums;
         }
-        // console.log('     ---- total_page_nums: ', total_page_nums);
+        // console.log('     ---- totalPages: ', totalPages);
         // console.log('     ---- afterItemNums: ', afterItemNums);
         // console.log('     ---- curPageNums: ', curPageNums);
         return {
             total,
             pageNo,
             pageSize,
-            total_page_nums,
+            totalPages,
             curPageNums,
             itemStartid
         }

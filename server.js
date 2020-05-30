@@ -10,12 +10,11 @@ var app = express();
 var Mock = require("mockjs");
 let Random = Mock.Random;
 
-
-const util = require('./util.js')
+const util = require("./util.js");
 
 const port = 9999;
 
-function returnTimeout(cb, times = Random.natural(1, 1000)) {
+function returnTimeout(cb, times = Random.natural(1, 500)) {
   console.log(...arguments);
   setTimeout(() => {
     return cb();
@@ -82,7 +81,7 @@ app
         data: {
           hello: "888999439 id: " + req.query.id || "",
         },
-        "req.Query": req.query,
+        reqData: req.query,
       })
     );
   })
@@ -127,7 +126,8 @@ app
               user = {
                 id: Random.guid(),
                 nickName: Random.cname(),
-                avatarUrl: "https://www.baidu.com/img/flexible/logo/pc/result.png",
+                avatarUrl:
+                  "https://www.baidu.com/img/flexible/logo/pc/result.png",
                 openId: res_openId,
                 sessionKey: res_session_key,
                 creatTime: util.formatTime(new Date()),
@@ -182,9 +182,9 @@ app
     if (req.user) {
       return res.send({
         code: 0,
-        data:{
-          user: req.user
-        }
+        data: {
+          user: req.user,
+        },
       });
     }
     throw new Error("用户未登录");
@@ -227,6 +227,48 @@ app
   })
 
   /**
+   * 页面列表
+   */
+  .post("/get/info", (req, res) => {
+    // log('\n\n---------------------------------------');
+    // log('---------------------------------------');
+    log("     -- body ", req.body);
+    // log(Random.dataImage('200x100'));
+
+    let resData = {
+      code: 0,
+      data: {
+        info: Mock.mock({
+          id: Mock.mock("@id()"),
+          cname: Mock.mock("@id()") + Mock.mock("@cname()"),
+          namesort: Mock.mock("@cname()"),
+          name: Mock.mock("@cname()") + "xxx店铺",
+          namelong: "" + Mock.mock("@cname()") + "xxx店铺",
+          time: Random.time(),
+          title: Random.ctitle(),
+          cparagraph: Random.cparagraph(),
+          permissions:['CHN','JPN','FRA'],
+          address: Mock.mock("@county(true)"),
+          imgurl: Random.image("200x200", Random.color()),
+          "number|1-3": 1,
+          "boolean|1-2": true,
+          price: Random.float(0.01, 100, 2, 2),
+          aaguid: "@guid",
+        }),
+      },
+      reqData: req.body,
+    };
+
+    log("             || ");
+    log("             || \n\n");
+    log("---- resData---- \n");
+    log(resData);
+    log("---------------------------------------");
+    log("---------------------------------------", " \n \n");
+    returnTimeout(() => res.send(resData));
+  })
+
+  /**
    * 商家列表
    */
   .post("/page/list", (req, res) => {
@@ -234,8 +276,13 @@ app
     var { keyword, pageNo, pageSize } = req.body;
 
     var pageObj = page.pageUtil(pageNo, pageSize);
-    var { curPageNums, itemStartid, total_page_nums } = { ...pageObj };
+    var { curPageNums, itemStartid, totalPages } = { ...pageObj };
     // log(pageObj);
+
+    // log(",,,img  ", Random.dataImage("200x100"));
+
+    // http://dummyimage.com/200x100
+    log(",,,img  ", Random.image("200x100"));
 
     let lists = [];
     while (curPageNums > 0) {
@@ -245,7 +292,15 @@ app
       lists.push(
         Mock.mock({
           id: itemStartid,
+          cname: itemStartid + Mock.mock("@cname()"),
+          namesort: itemStartid + Mock.mock("@cname()"),
           name:
+            itemStartid +
+            "" +
+            Mock.mock("@cname()") +
+            (keyword || "") +
+            "xxx店铺",
+          namelong:
             itemStartid +
             "" +
             Mock.mock("@cname()") +
@@ -253,6 +308,13 @@ app
             "xxx店铺" +
             randomStr,
           time: Random.time(),
+          title: Random.ctitle(),
+          cparagraph: Random.cparagraph(),
+          address: Mock.mock("@county(true)"),
+          imgurl: Random.image("200x200", Random.color()),
+          "number|1-3": 1,
+          "boolean|1-2": true,
+          price: Random.float(0.01, 100, 2, 2),
           aaguid: "@guid",
         })
       );
@@ -261,15 +323,16 @@ app
     }
 
     let resData = {
-      code: 1,
+      code: 0,
       data: {
         list: lists,
         pageNo,
         pageSize: pageObj.pageSize,
         curPageNums: pageObj.curPageNums,
-        total_page_nums: total_page_nums,
+        totalPages: totalPages,
         total: pageObj.total,
       },
+      reqData: req.body,
     };
 
     log("             || ");
@@ -282,7 +345,78 @@ app
     log("---------------------------------------", " \n \n");
 
     returnTimeout(() => res.send(resData));
-    
+  })
+
+  /**
+   * 页面列表
+   */
+  .post("/form/add", (req, res) => {
+    // log('\n\n---------------------------------------');
+    // log('---------------------------------------');
+    log("     -- body ", req.body);
+
+    let resData = {
+      code: 0,
+      data: {
+      },
+      reqData: req.body,
+    };
+
+    log("             || ");
+    log("             || \n\n");
+    log("---- resData---- \n");
+    log(resData);
+    log("---------------------------------------");
+    log("---------------------------------------", " \n \n");
+    returnTimeout(() => res.send(resData));
+  })
+
+  /**
+   * 页面列表
+   */
+  .post("/form/edit", (req, res) => {
+    // log('\n\n---------------------------------------');
+    // log('---------------------------------------');
+    log("     -- body ", req.body);
+
+    let resData = {
+      code: 0,
+      data: {
+      },
+      reqData: req.body,
+    };
+
+    log("             || ");
+    log("             || \n\n");
+    log("---- resData---- \n");
+    log(resData);
+    log("---------------------------------------");
+    log("---------------------------------------", " \n \n");
+    returnTimeout(() => res.send(resData));
+  })
+
+  /**
+   * 页面列表
+   */
+  .post("/delete", (req, res) => {
+    // log('\n\n---------------------------------------');
+    // log('---------------------------------------');
+    log("     -- body ", req.body);
+
+    let resData = {
+      code: 0,
+      data: {
+      },
+      reqData: req.body,
+    };
+
+    log("             || ");
+    log("             || \n\n");
+    log("---- resData---- \n");
+    log(resData);
+    log("---------------------------------------");
+    log("---------------------------------------", " \n \n");
+    returnTimeout(() => res.send(resData));
   })
 
   /**
