@@ -13,7 +13,6 @@ var WXBizDataCrypt = require("./WXBizDataCrypt");
 var app = express();
 var Mock = require("mockjs");
 
-
 let Random = Mock.Random;
 
 const util = require("./util.js");
@@ -38,10 +37,10 @@ function err() {
 // 存储所有用户信息
 const users = [];
 
-app
-  .use(bodyParser.json())
+app.use(bodyParser.json());
 // .use('/', express.static('img'))
-app.use('/static', express.static('static'))
+app
+  .use("/static", express.static("static"))
   .use(
     session({
       secret: "alittlegirl",
@@ -93,8 +92,8 @@ app.use('/static', express.static('static'))
       })
     );
   })
-  .post('/test/buffer', function (req, res) {
-    const buffer = Buffer.from('p8AuXbAKFihL9N1H4aYi7w==', 'base64');
+  .post("/test/buffer", function (req, res) {
+    const buffer = Buffer.from("p8AuXbAKFihL9N1H4aYi7w==", "base64");
     const bufferStream = new stream.PassThrough();
     bufferStream.end(buffer);
     bufferStream.pipe(res);
@@ -105,10 +104,15 @@ app.use('/static', express.static('static'))
    *获取 access_token
    */
   .post("/cgi-bin/token", (req, res) => {
-
     let access_token;
     axios
-      .get("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + config.appId + "&secret=" + config.appSecret, { params: {} })
+      .get(
+        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
+          config.appId +
+          "&secret=" +
+          config.appSecret,
+        { params: {} }
+      )
       .then((res_t) => {
         console.log(res_t.data);
         access_token = res_t.data.access_token;
@@ -119,48 +123,57 @@ app.use('/static', express.static('static'))
           },
           msg: "获取 access_token 成功",
         });
-      })
+      });
   })
   /**
    *获取 access_token 获取 二维码
    */
   .get("/wxa/getwxacodeunlimit", (req, res) => {
-
     let access_token;
     axios
-      .get("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + config.appId + "&secret=" + config.appSecret, { params: {} })
+      .get(
+        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
+          config.appId +
+          "&secret=" +
+          config.appSecret,
+        { params: {} }
+      )
       .then((res_t) => {
         console.log(res_t.data);
         access_token = res_t.data.access_token;
         axios({
           headers: { "Content-type": "application/json" },
-          method: 'post',
-          responseType: 'arraybuffer',
-          url: 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + access_token + '',
+          method: "post",
+          responseType: "arraybuffer",
+          url:
+            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" +
+            access_token +
+            "",
           data: {
-            scene: 'id=234',
+            scene: "id=234",
             //
             // page:'pages/infor/main',
-            width: 280
-          }
-        })
-          .then((res_img) => {
-            let src = `static/img/qrcodeshare.png`;
-            // let src = path.dirname(__dirname).replace(/\\/g, '/') + `/mini-mock-server/static/img/qrcodeshare.png`;
-            // console.log(src);
-            fs.writeFile(src, res_img.data, function (err) {
-              if (err) { console.log(err); }
-              return res.send({
-                code: 0,
-                data: {
-                  imgurl: config.api + '/' + src,
-                },
-                msg: "获取 图片 成功",
-              });
+            width: 280,
+          },
+        }).then((res_img) => {
+          let src = `static/img/qrcodeshare.png`;
+          // let src = path.dirname(__dirname).replace(/\\/g, '/') + `/mini-mock-server/static/img/qrcodeshare.png`;
+          // console.log(src);
+          fs.writeFile(src, res_img.data, function (err) {
+            if (err) {
+              console.log(err);
+            }
+            return res.send({
+              code: 0,
+              data: {
+                imgurl: config.api + "/" + src,
+              },
+              msg: "获取 图片 成功",
             });
-            // return res.send(res_img);
-          })
-      })
+          });
+          // return res.send(res_img);
+        });
+      });
   })
 
   /**
@@ -214,7 +227,7 @@ app.use('/static', express.static('static'))
             } else {
               log("老用户", user);
               // 更新session——key
-              user.sessionKey= res_session_key
+              user.sessionKey = res_session_key;
             }
             req.session.openId = user.openId;
             // log(req.session)
@@ -291,32 +304,32 @@ app.use('/static', express.static('static'))
     var user = req.user;
     if (user) {
       var { encryptedData, iv } = req.body;
-      log("WXBizDataCrypt : ", config.appId, user.sessionKey)
+      log("WXBizDataCrypt : ", config.appId, user.sessionKey);
       var pc = new WXBizDataCrypt(config.appId, user.sessionKey);
       try {
         var data = pc.decryptData(encryptedData, iv);
-        log(data)
-      } catch (err) {return res.send({
-        code: 0,
-        data: {
-          userinfo: user
-        },
-        msg:"session 失效建议重新登录"
-      });
+        log(data);
+      } catch (err) {
+        return res.send({
+          code: 0,
+          data: {
+            userinfo: user,
+          },
+          msg: "session 失效建议重新登录",
+        });
       }
       Object.assign(user, data);
       return res.send({
         code: 0,
         data: {
-          phone: data
-        }
+          phone: data,
+        },
       });
     } else {
       return res.send({
         code: 201,
-        data: {
-        },
-        msg: "未获取到用户信息"
+        data: {},
+        msg: "未获取到用户信息",
       });
     }
   })
@@ -339,10 +352,14 @@ app.use('/static', express.static('static'))
           namesort: Mock.mock("@cname()"),
           name: Mock.mock("@cname()") + "xxx店铺",
           namelong: "" + Mock.mock("@cname()") + "xxx店铺",
-          time: Random.time(),
+          time: Mock.mock('@date("yyyy-MM-dd")') + Random.time("HH:mm:ss"),
+          time_HHmmss: Random.time("HH:mm:ss"),
+          time_HHmm: Random.time("HH:mm"),
+          data_yyyyMMdd: Mock.mock('@date("yyyy-MM-dd")'),
+          data_MMdd: Mock.mock('@date("MM-dd")'),
           title: Random.ctitle(),
           cparagraph: Random.cparagraph(),
-          permissions: ['CHN', 'JPN', 'FRA'],
+          permissions: ["CHN", "JPN", "FRA"],
           address: Mock.mock("@county(true)"),
           imgurl: Random.image("200x200", Random.color()),
           "number|1-3": 1,
@@ -402,7 +419,12 @@ app.use('/static', express.static('static'))
             (keyword || "") +
             "xxx店铺" +
             randomStr,
-          time: Random.time(),
+          time:
+            Mock.mock('@date("yyyy-MM-dd")') + " " + Random.time("HH:mm:ss"),
+          time_HHmmss: Random.time("HH:mm:ss"),
+          time_HHmm: Random.time("HH:mm"),
+          data_yyyyMMdd: Mock.mock('@date("yyyy-MM-dd")'),
+          data_MMdd: Mock.mock('@date("MM-dd")'),
           title: Random.ctitle(),
           cparagraph: Random.cparagraph(),
           address: Mock.mock("@county(true)"),
@@ -452,8 +474,7 @@ app.use('/static', express.static('static'))
 
     let resData = {
       code: 0,
-      data: {
-      },
+      data: {},
       reqData: req.body,
     };
 
@@ -476,8 +497,7 @@ app.use('/static', express.static('static'))
 
     let resData = {
       code: 0,
-      data: {
-      },
+      data: {},
       reqData: req.body,
     };
 
@@ -500,8 +520,7 @@ app.use('/static', express.static('static'))
 
     let resData = {
       code: 0,
-      data: {
-      },
+      data: {},
       reqData: req.body,
     };
 
