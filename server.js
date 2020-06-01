@@ -257,7 +257,7 @@ app.use('/static', express.static('static'))
     }
   })
 
-  .get("/user/info", (req, res) => {
+  .post("/user/info", (req, res) => {
     if (req.user) {
       return res.send({
         code: 0,
