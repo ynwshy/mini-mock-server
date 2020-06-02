@@ -30,7 +30,7 @@ function log() {
   console.log(...arguments);
 }
 
-function err() {
+function error() {
   console.error(...arguments);
 }
 
@@ -283,45 +283,133 @@ app
   })
 
   .post("/user/bindinfo", (req, res) => {
-    var user = req.user;
-    if (user) {
-      var { encryptedData, iv } = req.body;
-      var pc = new WXBizDataCrypt(config.appId, user.sessionKey);
-      try {
-        var data = pc.decryptData(encryptedData, iv);
-      } catch (err) {
-        throw new Error("session 失效建议重新登录");
-      }
-      Object.assign(user, data);
-      return res.send({
-        code: 0,
+    // var user = req.user;
+    // if (user) {
+    var { encryptedData, iv, code, signature } = req.body;
+    let pa = {
+      appid: config.appId,
+      secret: config.appSecret,
+      js_code: code,
+      grant_type: "authorization_code",
+    };
+    log("jscode2session params ", pa);
+    var res_openId = "openId";
+    var res_session_key = "session_key";
+    axios
+      .get("https://api.weixin.qq.com/sns/jscode2session", {
+        params: pa,
+      })
+      .then(({ data }) => {
+        log("jscode2session: ", data);
+        if (data.openid) {
+          res_openId = data.openid;
+          res_session_key = data.session_key;
+          log("res_openId: ", res_openId);
+          log("res_session_key: ", res_session_key);
+          try {
+            var pc = new WXBizDataCrypt(config.appId, res_session_key);
+            log("decryptData pc ", pc);
+            log("decryptData encryptedData ", encryptedData);
+            log("decryptData iv ", iv);
+            var decryptData = pc.decryptData(encryptedData, iv);
+            log("decryptData ", decryptData);
+
+            openId = decryptData.openId;
+            let isNewUser = false;
+            var user = null;
+            users.forEach((uu) => {
+              if (uu.openId === res_openId) {
+                user = uu;
+              }
+            });
+            log("user ", user);
+            if (!user) {
+              isNewUser = true;
+              user = {
+                id: Random.guid(),
+                phone: "",
+                nickName: decryptData.nickName,
+                avatarUrl: decryptData.avatarUrl,
+                openId: decryptData.openId,
+                sessionKey: data.session_key,
+                creatTime: util.formatTime(new Date()),
+              };
+              users.push(user);
+              log("新用户", user);
+            } else {
+              log("老用户", user);
+              user.nickName = decryptData.nickName;
+              user.avatarUrl = decryptData.avatarUrl;
+              // 更新session——key
+              user.sessionKey = data.session_key;
+            }
+            req.session.openId = user.openId;
+            log('req.session - ',req.session)
+            return res.send({
+              code: 0,
+              data: {
+                userId: user.id,
+                userInfo: user,
+                isNewUser: isNewUser,
+              },
+              msg: "wxlogin 获取用户信息 成功",
+            });
+          } catch (err) {
+            return res.send({
+              code: 202,
+              data: {
+                res_openId,
+                res_session_key,
+              },
+              msg: "服务授权解析异常",
+              msgerr: "服务授权解析异常232",
+              reqData: req.body,
+            });
+          }
+        } else {
+          log("/user/bindinfo jscode2session 获取失败");
+          return res.send({
+            code: 203,
+            data: {
+            },
+            msg:data,
+            reqData: req.body,
+          });
+        }
+      })
+      .catch((err) => {
+        error("jscode2session: params err", err);
       });
-    }
-    throw new Error("用户未登录");
+
+    // }
+    // throw new Error("用户未登录");
   })
 
   .post("/user/bindphone", (req, res) => {
     var user = req.user;
     if (user) {
+      var res_session_key = "session_key";
       var { encryptedData, iv } = req.body;
       log("WXBizDataCrypt : ", config.appId, user.sessionKey);
       var pc = new WXBizDataCrypt(config.appId, user.sessionKey);
       try {
         var data = pc.decryptData(encryptedData, iv);
-        log(data);
+        log("bindphone  ", data);
       } catch (err) {
         return res.send({
-          code: 0,
+          code: 201,
           data: {
             userinfo: user,
           },
           msg: "session 失效建议重新登录",
         });
       }
-      Object.assign(user, data);
+      // Object.assign(user, data);
+      user.phone = data.phoneNumber;
       return res.send({
         code: 0,
         data: {
+          userinfo: user,
           phone: data,
         },
       });
