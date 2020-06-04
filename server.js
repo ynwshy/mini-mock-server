@@ -5,7 +5,8 @@ var stream = require("stream");
 // var Buffer = require("Buffer")
 var session = require("express-session");
 var axios = require("axios");
-var config = require("./config");
+var baseconfig = require("./config");
+var config = baseconfig;
 var page = require("./page");
 var path = require("path");
 var fs = require("fs");
@@ -53,9 +54,9 @@ app
     log(`\n\n<------------------------------------`);
     log(`<------------------------------------`);
     log(`<------------------------------------`);
-    // log(req)
     log(`url       : ${req.url}`);
     log(`method    : ${req.method}`);
+    log(util.formatTime(new Date()))
     log(`query     : `, req.query);
     log(`params    : `, req.params);
     log(`body      : `, req.body);
@@ -64,7 +65,13 @@ app
     log(`userid    : `, req.headers.userid);
     log(`token     : `, req.headers.token);
     log(`openid    : `, req.headers.openid);
+    log(`service   : `, req.headers.service);
+    log(`platform   : `, req.headers.platform);
+    config = baseconfig[req.headers.service || 'master'];
+    log(`config    : `, config);
+
     log(`users[${users.length}]   : \n`, users);
+
     req.user = null;
     users.forEach((uu) => {
       if (uu.id === req.headers.userid) {
@@ -76,11 +83,11 @@ app
     } else {
       log(`不存在的用户 session`, req.session.id);
     }
+
     next();
   })
 
   .get("/test/get", (req, res) => {
-    // log(req)
     returnTimeout(() =>
       res.send({
         code: 0,
