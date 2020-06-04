@@ -64,16 +64,15 @@ app
     log(`userid    : `, req.headers.userid);
     log(`token     : `, req.headers.token);
     log(`openid    : `, req.headers.openid);
-    log(`users     : `, users);
+    log(`users[${users.length}]   : \n`, users);
     req.user = null;
     users.forEach((uu) => {
       if (uu.id === req.headers.userid) {
         req.user = uu;
       }
     });
-    log(`curUser   : `, req.user);
     if (req.user) {
-      log(`存在的用户 wxapp openId`, req.user.openId);
+      log(`存在的用户 curUser:`, req.user);
     } else {
       log(`不存在的用户 session`, req.session.id);
     }
@@ -439,7 +438,7 @@ app
   .post("/get/info", (req, res) => {
     // log('\n\n---------------------------------------');
     // log('---------------------------------------');
-    log("     -- body ", req.body);
+    // log("     -- body ", req.body);
     // log(Random.dataImage('200x100'));
 
     let resData = {
@@ -470,30 +469,28 @@ app
       reqData: req.body,
     };
 
-    log("             || ");
-    log("             || \n\n");
-    log("---- resData---- \n");
-    log(resData);
-    log("---------------------------------------");
-    log("---------------------------------------", " \n \n");
+    // log("             || ");
+    // log("             || \n\n");
+    // log("---- resData---- \n");
+    // log(resData);
+    // log("---------------------------------------");
+    // log("---------------------------------------", " \n \n");
     returnTimeout(() => res.send(resData));
   })
 
   /**
-   * 商家列表
+   * 通用列表查询
    */
   .post("/page/list", (req, res) => {
-    log("     -- body ", req.body);
+    // log("     -- body ", req.body);
     var { keyword, pageNo, pageSize } = req.body;
 
     var pageObj = page.pageUtil(pageNo, pageSize);
     var { curPageNums, itemStartid, totalPages } = { ...pageObj };
     // log(pageObj);
 
-    // log(",,,img  ", Random.dataImage("200x100"));
 
-    // http://dummyimage.com/200x100
-    log(",,,img  ", Random.image("200x100"));
+    // Random.image("200x100") http://dummyimage.com/200x100
 
     let lists = [];
     while (curPageNums > 0) {
@@ -551,14 +548,14 @@ app
       reqData: req.body,
     };
 
-    log("             || ");
-    log("             || \n\n");
-    log("---- resData---- \n");
-    log(resData);
-    log("---- resData.data.list---- \n");
-    log(resData.data.list);
-    log("---------------------------------------");
-    log("---------------------------------------", " \n \n");
+    // log("             || ");
+    // log("             || \n\n");
+    // log("---- resData---- \n");
+    // log(resData);
+    // log("---- resData.data.list---- \n");
+    // log(resData.data.list);
+    // log("---------------------------------------");
+    // log("---------------------------------------", " \n \n");
 
     returnTimeout(() => res.send(resData));
   })
@@ -569,7 +566,7 @@ app
   .post("/form/add", (req, res) => {
     // log('\n\n---------------------------------------');
     // log('---------------------------------------');
-    log("     -- body ", req.body);
+    // log("     -- body ", req.body);
 
     let resData = {
       code: 0,
@@ -577,12 +574,12 @@ app
       reqData: req.body,
     };
 
-    log("             || ");
-    log("             || \n\n");
-    log("---- resData---- \n");
-    log(resData);
-    log("---------------------------------------");
-    log("---------------------------------------", " \n \n");
+    // log("             || ");
+    // log("             || \n\n");
+    // log("---- resData---- \n");
+    // log(resData);
+    // log("---------------------------------------");
+    // log("---------------------------------------", " \n \n");
     returnTimeout(() => res.send(resData));
   })
 
@@ -592,7 +589,7 @@ app
   .post("/form/edit", (req, res) => {
     // log('\n\n---------------------------------------');
     // log('---------------------------------------');
-    log("     -- body ", req.body);
+    // log("     -- body ", req.body);
 
     let resData = {
       code: 0,
@@ -600,12 +597,12 @@ app
       reqData: req.body,
     };
 
-    log("             || ");
-    log("             || \n\n");
-    log("---- resData---- \n");
-    log(resData);
-    log("---------------------------------------");
-    log("---------------------------------------", " \n \n");
+    // log("             || ");
+    // log("             || \n\n");
+    // log("---- resData---- \n");
+    // log(resData);
+    // log("---------------------------------------");
+    // log("---------------------------------------", " \n \n");
     returnTimeout(() => res.send(resData));
   })
 
@@ -615,7 +612,7 @@ app
   .post("/delete", (req, res) => {
     // log('\n\n---------------------------------------');
     // log('---------------------------------------');
-    log("     -- body ", req.body);
+    // log("     -- body ", req.body);
 
     let resData = {
       code: 0,
@@ -623,12 +620,12 @@ app
       reqData: req.body,
     };
 
-    log("             || ");
-    log("             || \n\n");
-    log("---- resData---- \n");
-    log(resData);
-    log("---------------------------------------");
-    log("---------------------------------------", " \n \n");
+    // log("             || ");
+    // log("             || \n\n");
+    // log("---- resData---- \n");
+    // log(resData);
+    // log("---------------------------------------");
+    // log("---------------------------------------", " \n \n");
     returnTimeout(() => res.send(resData));
   })
 
