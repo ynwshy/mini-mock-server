@@ -56,7 +56,7 @@ app
     log(`<------------------------------------`);
     log(`url       : ${req.url}`);
     log(`method    : ${req.method}`);
-    log(util.formatTime(new Date()))
+    log(util.formatTime(new Date()));
     log(`query     : `, req.query);
     log(`params    : `, req.params);
     log(`body      : `, req.body);
@@ -67,7 +67,7 @@ app
     log(`openid    : `, req.headers.openid);
     log(`service   : `, req.headers.service);
     log(`platform   : `, req.headers.platform);
-    config = baseconfig[req.headers.service || 'master'];
+    config = baseconfig[req.headers.service || "master"];
     log(`config    : `, config);
 
     log(`users[${users.length}]   : \n`, users);
@@ -497,7 +497,6 @@ app
     var { curPageNums, itemStartid, totalPages } = { ...pageObj };
     // log(pageObj);
 
-
     // Random.image("200x100") http://dummyimage.com/200x100
 
     let lists = [];
@@ -505,6 +504,18 @@ app
       let randomStr = Number(
         Math.random().toString().substr(3, 5) + Date.now()
       ).toString(36);
+      let imglistnums = Random.natural(0, 5);
+      let imglist  = [];
+      
+      for (let index = 0; index < imglistnums; index++) {
+        imglist.push({
+          id:index,
+          imgurl: Random.image('200x200', Random.color()),
+          name: Mock.mock('@cname()') + '套餐',
+          price: Random.float(0.01, 100, 2, 2)
+        });
+      }
+
       lists.push(
         Mock.mock({
           id: itemStartid,
@@ -529,6 +540,39 @@ app
           time_HHmm: Random.time("HH:mm"),
           data_yyyyMMdd: Mock.mock('@date("yyyy-MM-dd")'),
           data_MMdd: Mock.mock('@date("MM-dd")'),
+          imglists:imglist,
+          imglist: [
+            {
+              id:0,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "0套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:1,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "1套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:2,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "2套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:3,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "3套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:4,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "4套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+          ],
           title: Random.ctitle(),
           cparagraph: Random.cparagraph(),
           address: Mock.mock("@county(true)"),
