@@ -448,6 +448,17 @@ app
     // log("     -- body ", req.body);
     // log(Random.dataImage('200x100'));
 
+    let imglistnums = Random.natural(0, 5);
+    let imglist  = [];
+    for (let index = 0; index < imglistnums; index++) {
+      imglist.push({
+        id:index,
+        imgurl: Random.image('200x200', Random.color()),
+        name: Mock.mock('@cname()') + '套餐',
+        price: Random.float(0.01, 100, 2, 2)
+      });
+    }
+
     let resData = {
       code: 0,
       data: {
@@ -465,6 +476,39 @@ app
           title: Random.ctitle(),
           cparagraph: Random.cparagraph(),
           permissions: ["CHN", "JPN", "FRA"],
+          imglists:imglist,
+          imglist: [
+            {
+              id:0,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "0套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:1,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "1套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:2,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "2套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:3,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "3套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+            {
+              id:4,
+              imgurl: Random.image("200x200", Random.color()),
+              name: Mock.mock("@cname()") + "4套餐",
+              price: Random.float(0.01, 100, 2, 2),
+            },
+          ],
           address: Mock.mock("@county(true)"),
           imgurl: Random.image("200x200", Random.color()),
           "num|1-100": 1,
@@ -504,9 +548,9 @@ app
       let randomStr = Number(
         Math.random().toString().substr(3, 5) + Date.now()
       ).toString(36);
+
       let imglistnums = Random.natural(0, 5);
       let imglist  = [];
-      
       for (let index = 0; index < imglistnums; index++) {
         imglist.push({
           id:index,
@@ -623,7 +667,7 @@ app
 
     let resData = {
       code: 0,
-      data: {},
+      data: req.body,
       reqData: req.body,
     };
 
@@ -646,7 +690,7 @@ app
 
     let resData = {
       code: 0,
-      data: {},
+      data: req.body,
       reqData: req.body,
     };
 
