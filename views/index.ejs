@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="text/javascript" src="static/js/jquery.min.js"></script>
+    <script
+      type="text/javascript"
+      src="static/lib/jsonFormater/jsonFormater.js"
+    ></script>
+    <link
+      href="static/lib/jsonFormater/jsonFormater.css"
+      type="text/css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="h">
+      hello node server ejs <%= title %>
+      <p><%= serverTime %></p>
+      <button id="btn">刷新页面</button>
+      <p>
+        users[<%= users.length %>]
+      </p>
+    </div>
+    <div id="container"></div>
+    <script>
+      $(document).ready(function () {
+        var options = {
+          dom: "#container", //对应容器的css选择器
+        };
+        var jf = new JsonFormater(options); //创建对象
+        // console.log($.parseJSON(`<%= JSON.stringify(users) %>`))
+        jf.doFormat(`<%- JSON.stringify(users) %>`); //格式化json
+
+        $("#btn").mouseover(function () {
+          window.location.reload();
+        });
+        $("#btn").click(function () {
+          window.location.reload();
+        });
+      });
+    </script>
+  </body>
+</html>

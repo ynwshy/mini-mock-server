@@ -1,10 +1,29 @@
 var express = require("express");
 var bodyParser = require("body-parser");
-var path = require("path");
 var stream = require("stream");
 // var Buffer = require("Buffer")
 var session = require("express-session");
+var ejs = require("ejs");
 var axios = require("axios");
+const multer = require('multer');
+
+const multiparty = require('multiparty')
+const uuid = require('uuid')
+let uploadsrc = '/static/upload'
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'static/upload/' + file.fieldname)
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+})
+
+var upload = multer({ storage: storage })
+
+// const upload = multer({ dest: '.' + uploadsrc })
+
 var baseconfig = require("./config");
 var config = baseconfig;
 var page = require("./page");
@@ -38,8 +57,12 @@ function error() {
 // 存储所有用户信息
 const users = [];
 
+//定义模板引擎
+app.engine("html", ejs.__express);
+app.set("engine", "ejs");
+app.set('views', './views');
 app.use(bodyParser.json());
-// .use('/', express.static('img'))
+
 app
   .use("/static", express.static("static"))
   .use(
@@ -76,6 +99,7 @@ app
     users.forEach((uu) => {
       if (uu.id === req.headers.userid) {
         req.user = uu;
+        req.user.activeTime = util.formatTime(new Date())
       }
     });
     if (req.user) {
@@ -86,7 +110,13 @@ app
 
     next();
   })
-
+  .get("/", function (req, res) {
+    res.render("index.ejs", {
+      title: "hello get " + config.api + "/ ",
+      users: users,
+      serverTime: util.formatTime(new Date()) + '  ' + new Date().getTime()
+    })
+  })
   .get("/test/get", (req, res) => {
     returnTimeout(() =>
       res.send({
@@ -106,6 +136,22 @@ app
     // const buffer = Buffer.from('p8AuXbAKFihL9N1H4aYi7w==', 'base64');
     // res.send(buffer);
   })
+
+  .post("/test/uploadImg", upload.single('file'), function (req, res) {
+    log('test/uploadImg')
+    returnTimeout(() =>
+      res.send({
+        code: 0,
+        data: {
+          hello: "888999439 id: ",
+          filename: config.api + '/' + req.file.path,
+          file: req.file,
+        },
+        reqData: req.query,
+      })
+    );
+  })
+
   /**
    *获取 access_token
    */
@@ -114,9 +160,9 @@ app
     axios
       .get(
         "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
-          config.appId +
-          "&secret=" +
-          config.appSecret,
+        config.appId +
+        "&secret=" +
+        config.appSecret,
         { params: {} }
       )
       .then((res_t) => {
@@ -139,9 +185,9 @@ app
     axios
       .get(
         "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
-          config.appId +
-          "&secret=" +
-          config.appSecret,
+        config.appId +
+        "&secret=" +
+        config.appSecret,
         { params: {} }
       )
       .then((res_t) => {
@@ -449,10 +495,10 @@ app
     // log(Random.dataImage('200x100'));
 
     let imglistnums = Random.natural(0, 5);
-    let imglist  = [];
+    let imglist = [];
     for (let index = 0; index < imglistnums; index++) {
       imglist.push({
-        id:index,
+        id: index,
         imgurl: Random.image('200x200', Random.color()),
         name: Mock.mock('@cname()') + '套餐',
         price: Random.float(0.01, 100, 2, 2)
@@ -476,34 +522,34 @@ app
           title: Random.ctitle(),
           cparagraph: Random.cparagraph(),
           permissions: ["CHN", "JPN", "FRA"],
-          imglists:imglist,
+          imglists: imglist,
           imglist: [
             {
-              id:0,
+              id: 0,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "0套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:1,
+              id: 1,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "1套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:2,
+              id: 2,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "2套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:3,
+              id: 3,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "3套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:4,
+              id: 4,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "4套餐",
               price: Random.float(0.01, 100, 2, 2),
@@ -550,10 +596,10 @@ app
       ).toString(36);
 
       let imglistnums = Random.natural(0, 5);
-      let imglist  = [];
+      let imglist = [];
       for (let index = 0; index < imglistnums; index++) {
         imglist.push({
-          id:index,
+          id: index,
           imgurl: Random.image('200x200', Random.color()),
           name: Mock.mock('@cname()') + '套餐',
           price: Random.float(0.01, 100, 2, 2)
@@ -584,34 +630,34 @@ app
           time_HHmm: Random.time("HH:mm"),
           data_yyyyMMdd: Mock.mock('@date("yyyy-MM-dd")'),
           data_MMdd: Mock.mock('@date("MM-dd")'),
-          imglists:imglist,
+          imglists: imglist,
           imglist: [
             {
-              id:0,
+              id: 0,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "0套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:1,
+              id: 1,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "1套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:2,
+              id: 2,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "2套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:3,
+              id: 3,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "3套餐",
               price: Random.float(0.01, 100, 2, 2),
             },
             {
-              id:4,
+              id: 4,
               imgurl: Random.image("200x200", Random.color()),
               name: Mock.mock("@cname()") + "4套餐",
               price: Random.float(0.01, 100, 2, 2),
