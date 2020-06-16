@@ -138,200 +138,6 @@ app
       })
     );
   })
-  .post("/test/buffer", function (req, res) {
-    const buffer = Buffer.from("p8AuXbAKFihL9N1H4aYi7w==", "base64");
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(buffer);
-    bufferStream.pipe(res);
-    // const buffer = Buffer.from('p8AuXbAKFihL9N1H4aYi7w==', 'base64');
-    // res.send(buffer);
-  })
-
-  .post("/test/uploadImg", upload.single('file'), function (req, res) {
-    log('test/uploadImg')
-    returnTimeout(() =>
-      res.send({
-        code: 0,
-        data: {
-          hello: "888999439 id: ",
-          filename: config.api + '/' + req.file.path,
-          file: req.file,
-        },
-        reqData: req.query,
-      })
-    );
-  })
-
-  /**
-   *获取 access_token
-   */
-  .post("/cgi-bin/token", (req, res) => {
-    let access_token;
-    axios
-      .get(
-        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
-        config.appId +
-        "&secret=" +
-        config.appSecret,
-        { params: {} }
-      )
-      .then((res_t) => {
-        console.log(res_t.data);
-        access_token = res_t.data.access_token;
-        return res.send({
-          code: 0,
-          data: {
-            access_token: access_token,
-          },
-          msg: "获取 access_token 成功",
-        });
-      });
-  })
-  /**
-   *获取 access_token 获取 二维码
-   */
-  .get("/wxa/getwxacodeunlimit", (req, res) => {
-    let access_token;
-    axios
-      .get(
-        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
-        config.appId +
-        "&secret=" +
-        config.appSecret,
-        { params: {} }
-      )
-      .then((res_t) => {
-        console.log(res_t.data);
-        access_token = res_t.data.access_token;
-        axios({
-          headers: { "Content-type": "application/json" },
-          method: "post",
-          responseType: "arraybuffer",
-          url:
-            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" +
-            access_token +
-            "",
-          data: {
-            scene: "id=234",
-            //
-            // page:'pages/infor/main',
-            width: 280,
-          },
-        }).then((res_img) => {
-          let src = `static/img/qrcodeshare.png`;
-          // let src = path.dirname(__dirname).replace(/\\/g, '/') + `/mini-mock-server/static/img/qrcodeshare.png`;
-          // console.log(src);
-          fs.writeFile(src, res_img.data, function (err) {
-            if (err) {
-              console.log(err);
-            }
-            return res.send({
-              code: 0,
-              data: {
-                imgurl: config.api + "/" + src,
-              },
-              msg: "获取 图片 成功",
-            });
-          });
-          // return res.send(res_img);
-        });
-      });
-  })
-
-  /**
-   * 小程序登录 code => openid
-   */
-  .post("/oauth/login/code", (req, res) => {
-    var params = req.body;
-    log(params);
-    var { code, type } = params;
-    var res_openId = "openId";
-    var res_session_key = "session_key";
-
-    if (type === "wxapp") {
-      let pa = {
-        appid: config.appId,
-        secret: config.appSecret,
-        js_code: code,
-        grant_type: "authorization_code",
-      };
-      log(pa);
-      axios
-        .get("https://api.weixin.qq.com/sns/jscode2session", { params: pa })
-        .then(({ data }) => {
-          log("jscode2session: ", data);
-          if (data.openid) {
-            res_openId = data.openid;
-            res_session_key = data.session_key;
-            log("global.users ", global.users);
-            let isNewUser = false;
-            var user = null;
-            global.users.forEach((uu) => {
-              if (uu.openId === res_openId) {
-                user = uu;
-              }
-            });
-
-            log("user ", user);
-            if (!user) {
-              isNewUser = true;
-              user = {
-                id: Random.guid(),
-                nickName: Random.cname(),
-                avatarUrl:
-                  "https://www.baidu.com/img/flexible/logo/pc/result.png",
-                openId: res_openId,
-                sessionKey: res_session_key,
-                creatTime: util.formatTime(new Date()),
-              };
-              global.users.push(user);
-              log("新用户", user);
-            } else {
-              log("老用户", user);
-              // 更新session——key
-              user.sessionKey = res_session_key;
-            }
-            req.session.openId = user.openId;
-            // log(req.session)
-            return res.send({
-              code: 0,
-              data: {
-                userId: user.id,
-                // openId: res_openId,
-                // session_key: res_session_key,
-                isNewUser: isNewUser,
-              },
-              msg: "wxlogin 获取openid 成功",
-            });
-          } else {
-            return res.send({
-              code: 201,
-              data: {
-                openId: null,
-                session_key: null,
-              },
-              msg: "请求微信服务异常",
-              errmsg: data,
-            });
-          }
-        })
-        .catch((err) => {
-          log("catch -----------------------------------------\n", err);
-          return res.send({
-            code: 203,
-            data: {
-              openId: null,
-              session_key: null,
-            },
-            msg: "catch：/jscode2session 请求微信接口服务失败",
-            // errmsg:JSON.stringify(err)
-          });
-        });
-    } else {
-      throw new Error("未知的授权类型");
-    }
-  })
-
   .post("/user/info", (req, res) => {
     if (req.user) {
       return res.send({
@@ -493,6 +299,200 @@ app
         msg: "未获取到用户信息",
       });
     }
+  })
+
+  /**
+   * 小程序登录 code => openid
+   */
+  .post("/oauth/login/code", (req, res) => {
+    var params = req.body;
+    log(params);
+    var { code, type } = params;
+    var res_openId = "openId";
+    var res_session_key = "session_key";
+
+    if (type === "wxapp") {
+      let pa = {
+        appid: config.appId,
+        secret: config.appSecret,
+        js_code: code,
+        grant_type: "authorization_code",
+      };
+      log(pa);
+      axios
+        .get("https://api.weixin.qq.com/sns/jscode2session", { params: pa })
+        .then(({ data }) => {
+          log("jscode2session: ", data);
+          if (data.openid) {
+            res_openId = data.openid;
+            res_session_key = data.session_key;
+            log("global.users ", global.users);
+            let isNewUser = false;
+            var user = null;
+            global.users.forEach((uu) => {
+              if (uu.openId === res_openId) {
+                user = uu;
+              }
+            });
+
+            log("user ", user);
+            if (!user) {
+              isNewUser = true;
+              user = {
+                id: Random.guid(),
+                nickName: Random.cname(),
+                avatarUrl:
+                  "https://www.baidu.com/img/flexible/logo/pc/result.png",
+                openId: res_openId,
+                sessionKey: res_session_key,
+                creatTime: util.formatTime(new Date()),
+              };
+              global.users.push(user);
+              log("新用户", user);
+            } else {
+              log("老用户", user);
+              // 更新session——key
+              user.sessionKey = res_session_key;
+            }
+            req.session.openId = user.openId;
+            // log(req.session)
+            return res.send({
+              code: 0,
+              data: {
+                userId: user.id,
+                // openId: res_openId,
+                // session_key: res_session_key,
+                isNewUser: isNewUser,
+              },
+              msg: "wxlogin 获取openid 成功",
+            });
+          } else {
+            return res.send({
+              code: 201,
+              data: {
+                openId: null,
+                session_key: null,
+              },
+              msg: "请求微信服务异常",
+              errmsg: data,
+            });
+          }
+        })
+        .catch((err) => {
+          log("catch -----------------------------------------\n", err);
+          return res.send({
+            code: 203,
+            data: {
+              openId: null,
+              session_key: null,
+            },
+            msg: "catch：/jscode2session 请求微信接口服务失败",
+            // errmsg:JSON.stringify(err)
+          });
+        });
+    } else {
+      throw new Error("未知的授权类型");
+    }
+  })
+
+  .post("/test/buffer", function (req, res) {
+    const buffer = Buffer.from("p8AuXbAKFihL9N1H4aYi7w==", "base64");
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(buffer);
+    bufferStream.pipe(res);
+    // const buffer = Buffer.from('p8AuXbAKFihL9N1H4aYi7w==', 'base64');
+    // res.send(buffer);
+  })
+
+  .post("/test/uploadImg", upload.single('file'), function (req, res) {
+    log('test/uploadImg')
+    returnTimeout(() =>
+      res.send({
+        code: 0,
+        data: {
+          hello: "888999439 id: ",
+          filename: config.api + '/' + req.file.path,
+          file: req.file,
+        },
+        reqData: req.query,
+      })
+    );
+  })
+
+  /**
+   *获取 access_token
+   */
+  .post("/cgi-bin/token", (req, res) => {
+    let access_token;
+    axios
+      .get(
+        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
+        config.appId +
+        "&secret=" +
+        config.appSecret,
+        { params: {} }
+      )
+      .then((res_t) => {
+        console.log(res_t.data);
+        access_token = res_t.data.access_token;
+        return res.send({
+          code: 0,
+          data: {
+            access_token: access_token,
+          },
+          msg: "获取 access_token 成功",
+        });
+      });
+  })
+  /**
+   *获取 access_token 获取 二维码
+   */
+  .get("/wxa/getwxacodeunlimit", (req, res) => {
+    let access_token;
+    axios
+      .get(
+        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
+        config.appId +
+        "&secret=" +
+        config.appSecret,
+        { params: {} }
+      )
+      .then((res_t) => {
+        console.log(res_t.data);
+        access_token = res_t.data.access_token;
+        axios({
+          headers: { "Content-type": "application/json" },
+          method: "post",
+          responseType: "arraybuffer",
+          url:
+            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" +
+            access_token +
+            "",
+          data: {
+            scene: "id=234",
+            //
+            // page:'pages/infor/main',
+            width: 280,
+          },
+        }).then((res_img) => {
+          let src = `static/img/qrcodeshare.png`;
+          // let src = path.dirname(__dirname).replace(/\\/g, '/') + `/mini-mock-server/static/img/qrcodeshare.png`;
+          // console.log(src);
+          fs.writeFile(src, res_img.data, function (err) {
+            if (err) {
+              console.log(err);
+            }
+            return res.send({
+              code: 0,
+              data: {
+                imgurl: config.api + "/" + src,
+              },
+              msg: "获取 图片 成功",
+            });
+          });
+          // return res.send(res_img);
+        });
+      });
   })
 
   /**
