@@ -4,12 +4,12 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "nodemon server.js",
-        "start-server": "node server.js",
-        "pm2": "pm2 start server.js",
-        "stop": "pm2 stop server.js",
-        "restart": "pm2 stop server.js",
-        "nodemon": "nodemon server.js",
+        "start": "nodemon app.js",
+        "start-server": "node app.js",
+        "pm2": "pm2 start app.js",
+        "stop": "pm2 stop app.js",
+        "restart": "pm2 stop app.js",
+        "nodemon": "nodemon app.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",

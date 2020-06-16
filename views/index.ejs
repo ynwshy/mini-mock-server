@@ -18,7 +18,9 @@
   <body>
     <div id="h">
       hello node server ejs <%= title %>
-      <p><%= serverTime %></p>
+      <p>服务器启动时间： <%= startTime %></p>
+      <p>---------------------------------</p>
+      <p>当前服务器时间： <%= serverTime %></p>
       <button id="btn">刷新页面</button>
       <p>
         users[<%= users.length %>]

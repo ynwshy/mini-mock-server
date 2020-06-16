@@ -39,6 +39,8 @@ const util = require("./util.js");
 
 const port = 9999;
 
+global.str = "global.str 9999"
+
 function returnTimeout(cb, times = Random.natural(1, 500)) {
   console.log(...arguments);
   setTimeout(() => {
@@ -53,15 +55,22 @@ function log() {
 function error() {
   console.error(...arguments);
 }
-
+global.returnTimeout = returnTimeout
+global.log = log
+global.error = error
+global.startTime = util.formatTime(new Date())
 // 存储所有用户信息
-const users = [];
+global.users = [];
 
 //定义模板引擎
 app.engine("html", ejs.__express);
 app.set("engine", "ejs");
 app.set('views', './views');
 app.use(bodyParser.json());
+// 引入其他路由 接口
+app.use('/api/goods', require('./api/goods'));
+
+
 
 app
   .use("/static", express.static("static"))
@@ -93,7 +102,7 @@ app
     config = baseconfig[req.headers.service || "master"];
     log(`config    : `, config);
 
-    log(`users[${users.length}]   : \n`, users);
+    log(`global.use.length}]   : \n`, users);
 
     req.user = null;
     users.forEach((uu) => {
@@ -114,6 +123,7 @@ app
     res.render("index.ejs", {
       title: "hello get " + config.api + "/ ",
       users: users,
+      startTime: startTime,
       serverTime: util.formatTime(new Date()) + '  ' + new Date().getTime()
     })
   })
@@ -253,10 +263,10 @@ app
           if (data.openid) {
             res_openId = data.openid;
             res_session_key = data.session_key;
-            log("users ", users);
+            log("global.users ", global.users);
             let isNewUser = false;
             var user = null;
-            users.forEach((uu) => {
+            global.users.forEach((uu) => {
               if (uu.openId === res_openId) {
                 user = uu;
               }
@@ -274,7 +284,7 @@ app
                 sessionKey: res_session_key,
                 creatTime: util.formatTime(new Date()),
               };
-              users.push(user);
+              global.users.push(user);
               log("新用户", user);
             } else {
               log("老用户", user);
@@ -363,7 +373,7 @@ app
             openId = decryptData.openId;
             let isNewUser = false;
             var user = null;
-            users.forEach((uu) => {
+            global.users.forEach((uu) => {
               if (uu.openId === res_openId) {
                 user = uu;
               }
@@ -380,7 +390,7 @@ app
                 sessionKey: data.session_key,
                 creatTime: util.formatTime(new Date()),
               };
-              users.push(user);
+              global.users.push(user);
               log("创建了新用户 ：", user);
             } else {
               log("老用户上线了 ：", user);
