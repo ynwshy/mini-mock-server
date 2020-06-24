@@ -77,6 +77,7 @@ app
   .use(
     session({
       secret: "alittlegirl",
+      // cookie: ('name', 'SESSION', { path: '/', httpOnly: true,secure: false, maxAge:  60000 }),
       resave: false,
       saveUninitialized: true,
     })
@@ -85,6 +86,7 @@ app
   .use((req, res, next) => {
     log(`\n\n<------------------------------------`);
     log(`<------------------------------------`);
+    // log(`req       : `, req);
     log(`<------------------------------------`);
     log(`url       : ${req.url}`);
     log(`method    : ${req.method}`);
@@ -94,19 +96,24 @@ app
     log(`body      : `, req.body);
     log(`session   : `, req.session);
     // log(`headers   : `, req.headers);
-    log(`userid    : `, req.headers.userid);
+    log(`wxappUserId    : `, req.headers.wxappUserId);
     log(`token     : `, req.headers.token);
     log(`openid    : `, req.headers.openid);
     log(`service   : `, req.headers.service);
     log(`platform   : `, req.headers.platform);
     config = baseconfig[req.headers.service || "master"];
     log(`config    : `, config);
+    // log(`sessionStore  sessions[${req.sessionStore.sessions.length}]  : `, req.sessionStore);
+    log(`session.id   : `, req.session.id);
+    log(`cookie    : `, req.headers.cookie);
+    log(`session.SESSION   : `, req.session.SESSION);
+    log(`session.openid   : `, req.session.openId);
 
-    log(`global.use.length}]   : \n`, users);
+    log(`global.users.length[${global.users.length}]}]   : \n`, users);
 
     req.user = null;
     users.forEach((uu) => {
-      if (uu.id === req.headers.userid) {
+      if (uu.wxappUserId === req.headers.wxappUserId) {
         req.user = uu;
         req.user.activeTime = util.formatTime(new Date())
       }
@@ -150,7 +157,38 @@ app
     throw new Error("用户未登录");
   })
 
-  .post("/user/bindinfo", (req, res) => {
+  .post("/apicustom/logout", (req, res) => {
+    return res.send({
+      code: 0,
+      data: {},
+      msg: '退出成功',
+      reqData: req.body,
+    });
+  })
+
+  .post("/apicustom/getUserInfo", (req, res) => {
+    // res.redirect('/user/info');
+    log(`session   : `, req.session);
+    log(`session.id   : `, req.session.id);
+    log(`session.SESSION   : `, req.session.SESSION);
+    log(`session.openid   : `, req.session.openId);
+    if (req.user) {
+      return res.send({
+        code: 0,
+        data: {
+          user: req.user,
+        },
+      });
+    }
+    throw new Error("用户未登录");
+  })
+  .post("/apimaster/login", (req, res) => {
+    // res.location('/foo/bar');
+    // res.redirect('/foo/bar');
+  })
+  .post("/apicustom/login", (req, res) => {
+    // res.redirect('/test/get');
+
     // var user = req.user;
     // if (user) {
     var { encryptedData, iv, code, signature } = req.body;
@@ -190,8 +228,8 @@ app
               user = {
                 id: Random.guid(),
                 phone: "",
-                nickName: decryptData.nickName,
-                avatarUrl: decryptData.avatarUrl,
+                wxappNickName: decryptData.nickName,
+                wxappAvatarUrl: decryptData.avatarUrl,
                 openId: decryptData.openId,
                 sessionKey: data.session_key,
                 creatTime: util.formatTime(new Date()),
@@ -200,23 +238,26 @@ app
               log("创建了新用户 ：", user);
             } else {
               log("老用户上线了 ：", user);
-              user.nickName = decryptData.nickName;
-              user.avatarUrl = decryptData.avatarUrl;
+              user.wxappNickName = decryptData.nickName;
+              user.wxappAvatarUrl = decryptData.avatarUrl;
               // 更新session——key
               user.sessionKey = data.session_key;
             }
             req.session.openId = user.openId;
+            req.session.SESSION = req.session.id;
             log("req.session - ", req.session);
             return res.send({
               code: 0,
               data: {
-                userId: user.id,
-                userInfo: user,
+                ...user,
+                // wxappUserId: user.wxappUserId,
                 isNewUser: isNewUser,
               },
+              sessionId: req.session.id,
               msg: "wxlogin 获取用户信息 成功",
             });
           } catch (err) {
+            //
             return res.send({
               code: 202,
               data: {
@@ -224,7 +265,7 @@ app
                 res_session_key,
               },
               msg: "服务授权解析异常",
-              msgerr: "服务授权解析异常232",
+              msgerr: "服务授权解析异常232 获取到openid 解析用户信息失败",
               reqData: req.body,
             });
           }
@@ -340,8 +381,8 @@ app
               isNewUser = true;
               user = {
                 id: Random.guid(),
-                nickName: Random.cname(),
-                avatarUrl:
+                wxappNickName: Random.cname(),
+                wxappAvatarUrl:
                   "https://www.baidu.com/img/flexible/logo/pc/result.png",
                 openId: res_openId,
                 sessionKey: res_session_key,
@@ -359,7 +400,7 @@ app
             return res.send({
               code: 0,
               data: {
-                userId: user.id,
+                wxappUserId: user.wxappUserId,
                 // openId: res_openId,
                 // session_key: res_session_key,
                 isNewUser: isNewUser,
@@ -419,6 +460,37 @@ app
     );
   })
 
+  .post("/get/location", function (req, res) {
+    log('/get/location')
+    // location=lat<纬度>,lng<经度>
+    let lat = req.body.lat || '39.984154';
+    let lng = req.body.lng || '116.307490';
+    // list接口： 获取全部行政区划数据。该请求为GET请求。
+    // https://apis.map.qq.com/ws/district/v1/list
+    // getchildren接口：获取指定行政区划的子级行政区划。该请求为GET请求。
+    // https://apis.map.qq.com/ws/district/v1/getchildren
+    // search接口：根据关键词搜索行政区划。该请求为GET请求。
+    // https://apis.map.qq.com/ws/district/v1/search
+    axios
+      .get(
+        // `http://apis.map.qq.com/ws/geocoder/v1/?location=39.984154,116.307490&key=NS7BZ-3ZBWU-JPRVS-4MWUV-D5EKT-2SBSQ`,
+        `http://apis.map.qq.com/ws/geocoder/v1/?location=${lat},${lng}&key=NS7BZ-3ZBWU-JPRVS-4MWUV-D5EKT-2SBSQ`,
+        { params: {} }
+      )
+      .then((res_t) => {
+        console.log(res_t.data);
+        return res.send({
+          code: 0,
+          data: {
+            location: res_t.data,
+          },
+          reqData: req.body,
+          msg: "获取 定位 成功",
+        });
+      });
+
+  })
+
   /**
    *获取 access_token
    */
@@ -444,6 +516,7 @@ app
         });
       });
   })
+
   /**
    *获取 access_token 获取 二维码
    */
@@ -689,7 +762,7 @@ app
     }
 
     let resData = {
-      code: 0,
+      code: 4,
       data: {
         list: lists,
         pageNo,
