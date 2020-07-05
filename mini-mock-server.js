@@ -666,10 +666,10 @@ app
    */
   .post("/page/list", (req, res) => {
     // log("     -- body ", req.body);
-    var { keyword, pageNo, pageSize } = req.body;
+    var { keyword, pageIndex, pageSize } = req.body;
 
-    var pageObj = page.pageUtil(pageNo, pageSize);
-    var { curPageNums, itemStartid, totalPages } = { ...pageObj };
+    var pageObj = page.pageUtil(pageIndex, pageSize);
+    var { curPageNums, itemStartid, pageCount } = { ...pageObj };
     // log(pageObj);
 
     // Random.image("200x100") http://dummyimage.com/200x100
@@ -767,11 +767,11 @@ app
       code: 0,
       data: {
         list: lists,
-        pageNo,
+        pageIndex,
         pageSize: pageObj.pageSize,
         curPageNums: pageObj.curPageNums,
-        totalPages: totalPages,
-        total: pageObj.total,
+        pageCount: pageCount,
+        totalCount: pageObj.totalCount,
       },
       reqData: req.body,
     };
