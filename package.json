@@ -4,12 +4,12 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "nodemon app.js",
-        "start-server": "node app.js",
-        "pm2": "pm2 start app.js",
-        "stop": "pm2 stop app.js",
-        "restart": "pm2 stop app.js",
-        "nodemon": "nodemon app.js",
+        "dev": "nodemon mini-mock-server.js",
+        "start": "pm2 start mini-mock-server.js",
+        "pm2": "pm2 start mini-mock-server.js",
+        "stop": "pm2 stop mini-mock-server.js",
+        "restart": "pm2 reload mini-mock-server.js",
+        "nodemon": "nodemon mini-mock-server.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",

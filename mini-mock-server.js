@@ -65,7 +65,8 @@ global.users = [];
 //定义模板引擎
 app.engine("html", ejs.__express);
 app.set("engine", "ejs");
-app.set('views', './views');
+// app.set('view engine', 'ejs');
+app.set('views','./views');
 app.use(bodyParser.json());
 // 引入其他路由 接口
 app.use('/api/goods', require('./api/goods'));
@@ -182,11 +183,13 @@ app
     }
     throw new Error("用户未登录");
   })
-  .post("/apimaster/login", (req, res) => {
-    // res.location('/foo/bar');
-    // res.redirect('/foo/bar');
-  })
+  // .post("/apimaster/login", (req, res) => {
+    // res.location('/apimaster/login');
+    // res.redirect('/apicustom/login');
+    // res.('/foo/bar');
+  // })
   .post("/apicustom/login", (req, res) => {
+    // .post("/apicustom/login", (req, res) => {
     // res.redirect('/test/get');
 
     // var user = req.user;
@@ -226,7 +229,7 @@ app
             if (!user) {
               isNewUser = true;
               user = {
-                id: Random.guid(),
+                wxappUserId: Random.guid(),
                 phone: "",
                 wxappNickName: decryptData.nickName,
                 wxappAvatarUrl: decryptData.avatarUrl,
@@ -520,7 +523,7 @@ app
   /**
    *获取 access_token 获取 二维码
    */
-  .get("/wxa/getwxacodeunlimit", (req, res) => {
+  .post("/wxa/getwxacodeunlimit", (req, res) => {
     let access_token;
     axios
       .get(
@@ -541,16 +544,15 @@ app
             "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" +
             access_token +
             "",
-          data: {
+          data: req.body.config || {
             scene: "id=234",
-            //
-            // page:'pages/infor/main',
+            // page:'pages/index/index', // 未发布小程序不行
             width: 280,
           },
         }).then((res_img) => {
           let src = `static/img/qrcodeshare.png`;
           // let src = path.dirname(__dirname).replace(/\\/g, '/') + `/mini-mock-server/static/img/qrcodeshare.png`;
-          // console.log(src);
+          console.log(res_img);
           fs.writeFile(src, res_img.data, function (err) {
             if (err) {
               console.log(err);
@@ -762,7 +764,7 @@ app
     }
 
     let resData = {
-      code: 4,
+      code: 0,
       data: {
         list: lists,
         pageNo,
