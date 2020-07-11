@@ -66,7 +66,7 @@ global.users = [];
 app.engine("html", ejs.__express);
 app.set("engine", "ejs");
 // app.set('view engine', 'ejs');
-app.set('views','./views');
+app.set('views', './views');
 app.use(bodyParser.json());
 // 引入其他路由 接口
 app.use('/api/goods', require('./api/goods'));
@@ -184,9 +184,9 @@ app
     throw new Error("用户未登录");
   })
   // .post("/apimaster/login", (req, res) => {
-    // res.location('/apimaster/login');
-    // res.redirect('/apicustom/login');
-    // res.('/foo/bar');
+  // res.location('/apimaster/login');
+  // res.redirect('/apicustom/login');
+  // res.('/foo/bar');
   // })
   .post("/apicustom/login", (req, res) => {
     // .post("/apicustom/login", (req, res) => {
@@ -463,11 +463,12 @@ app
     );
   })
 
-  .post("/get/location", function (req, res) {
+  .get("/get/location", function (req, res) {
     log('/get/location')
     // location=lat<纬度>,lng<经度>
     let lat = req.body.lat || '39.984154';
     let lng = req.body.lng || '116.307490';
+    // https://lbs.qq.com/service/webService/webServiceGuide/webServiceGcoder
     // list接口： 获取全部行政区划数据。该请求为GET请求。
     // https://apis.map.qq.com/ws/district/v1/list
     // getchildren接口：获取指定行政区划的子级行政区划。该请求为GET请求。
@@ -767,6 +768,9 @@ app
       code: 0,
       data: {
         list: lists,
+      },
+      dataList: lists,
+      page: {
         pageIndex,
         pageSize: pageObj.pageSize,
         curPageNums: pageObj.curPageNums,
