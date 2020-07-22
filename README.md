@@ -1,6 +1,9 @@
 微信小程序  mock-server
 
+> gitee 
 https://gitee.com/ynwshy/mini-mock-server
+
+>github
 https://github.com/ynwshy/mini-mock-server
 
 
